@@ -1,0 +1,635 @@
+
+
+# -- команда от имени root
+$ -- команда от пользователя
+
+
+********************************************************************************
+
+1. Обновление системы
+
+Обновить список пакетов
+
+	# apt update
+
+Обновить пакеты:
+
+	# apt upgrade
+
+man apt
+********************************************************************************
+
+2. Начальные настройки
+
+Установка vim.
+
+	# apt install vim
+
+Проверить установлен ли пакет:
+
+	# dpkg -l | grep 'vim'
+
+Настройка /root/.bashrc:
+
+export LS_OPTIONS='--color=auto'
+export EDITOR="usr/bin/vim"
+alias ls='ls LS_OPTIONS'
+alias ll='ls LS_OPTIONS -alh'
+
+Настройка /root/.vimrc:
+
+set number
+syntax on
+
+Установить tmux для работы за несколькими терминалами:
+
+	# apt install tmux
+	# dpkg -l | grep 'tmux'
+
+
+vimtutor
+man tmux
+********************************************************************************
+
+3. Команда для смена пользователя:
+
+	# su [options] [-] [user[arguments...]]
+	$ su [options] [-] [user[arguments...]]
+По умолчанию переключается на root.
+
+********************************************************************************
+
+4. Создание/удаление пользователей и групп.
+
+Создать обыкновенного пользователя:
+
+	# adduser username
+
+Создать обыкновенную группу:
+
+	# addgroup groupname
+
+Добавить пользователя в группу:
+
+	# addgroup username groupname
+
+Удалить пользователя:
+
+	# delluser username
+
+Удалить пользователя вместе с домашней дирректорией:
+
+	# delluser --remove-home username
+
+Удалить со всеми файлами, принадлежащими пользователю:
+
+	# delluser --remove-all-files username
+
+Удалить группу:
+
+	# dellgroup groupname
+
+Удаление пользователя из группы:
+
+	# delluser username groupname
+
+Добавить пользователя в группу user42:
+
+	# addgroup user42
+	# grep 'user42' /etc/group
+	or # getent group user42
+	# adduser ccartman user42
+	# grep 'user42' /etc/group
+	or # getent group user42
+
+********************************************************************************
+
+5. Настройка sudo:
+
+Установить sudo:
+	
+	# apt instal sudo
+
+Проверить установлен ли пакет:
+
+	# dpkg -l | grep 'sudo'
+
+Добаить пользователя в группу sudo:
+
+	# adduser ccartman sudo
+	# grep 'sudo' /etc/group
+	or # getent group sudo
+
+Теперь пользователь может выполнять привилегированные команды через
+
+	$ sudo command
+
+Настройка конфигурации для группы sudo -- это измение файла /etc/sudoers.
+Это делается с помощью утилиты visudo, которая проверит правильность файла
+после редактирования. Если sudoers содержит некорректные строки, sudo не будет
+работать.
+
+Изменить файл /etc/sudoers:
+
+	$ sudo visudo 
+
+#назначить vim как редактор по-умолчанию
+Defaults	editor="usr/bin/vim"
+#сбросить переменные окружения до минимальных
+Defaults	env_reset
+Defaults	mail_badpass
+#ограничить аутентификацию 3 попытками
+Defaults	passwd_tries=3
+#назначить сообщение при вводе неправильного пароля
+Defaults	badpass_message="oooups... Try again, please."
+#архивировать действия пользователя в файле /var/log/sudo/sudo.log
+Defaults	logfile="/var/log/sudo/sudo.log"
+#архивировать все input и output пользователя в дир. /var/log/sudo/iolog
+Defaults	log_input
+Defaults	log_output
+Defaults	iolog_dir="/var/log/sudo/"
+Defaults	iolog_file="iolog"
+#enable TTY mode
+Defaults	requiretty
+#назначить пути, которые будут использоваться sudu
+Defaults	secure_pass="/usr/local/sbin:/usr/local/bin:/usr/bin:\
+						/sbin:/bin:/snap/bin"
+
+Проверить файл /etc/sudoers:
+
+	# visudo --check
+
+Создать дир. /var/log/sudo и файл sudo.log внутри
+
+	# mkdir /var/log/sudo
+	# touch /var/log/sudo/sudo.log
+
+man sudoers
+man sudo
+man visudo
+********************************************************************************
+
+6. Настройка ufw
+
+Установить пакет ufw:
+
+	# apt install ufw
+
+Проверить наличие пакета:
+
+	# dpkg -l | grep 'ufw'
+
+Вкллючить серивис ufw:
+
+	# ufw enable
+
+Проверить статус ufw:
+
+	# ufw status
+	or
+	# service ufw status
+	or
+	# systemctl status ufw
+Открыть порт 4242
+	
+	# ufw allow 4242
+
+
+man ufw
+********************************************************************************
+
+7. Настройка SSH
+
+Установить пакет ssh-server:
+
+	# apt install ssh-server
+
+Проверить наличие пакета:
+
+	# dpkg -l | grep 'ssh-server'
+
+Запустить службу sshd:
+
+	# systemctl start sshd
+
+Включить ее запуск после перезагрузки системы:
+
+	# systemctl enable sshd
+
+Проверить статус службы:
+
+	# systemctl status sshd
+
+
+Проверит статус ssh:
+
+	# service ssh status
+	or # systemctl status ssh
+
+Редактировать файл конфигурации для  ssh даймона
+
+	# vim /etc/ssh/ssd_config
+
+# Сменить порт на 4242
+port 4242
+# Запретить подключаться к root
+PermitRootLogin no
+
+Можно найти эти строчки в файле, раскомментировать их и поменять.
+
+Далее нужно настроить конфигурацию виртууальной машины:
+
+Окно VirtualBox -> Settings (для нашей машины) -> Network -> Attached to Nat ->
+Advanced -> Port Forwarding -> Add new port forwarding rule ->
+name	protocol	host ip		host port	guest ip	guest port
+SSH		TCP			127.0.0.1	2200		10.0.2.15	4242
+-> ok
+
+Теперь можно настроить статический ip адрес для guest mashine:
+
+	# vim /etc/network/interfaces
+
+# The primary network interface
+allow-hotplug enp0s3
+iface enp0s3 inet static
+	address 10.0.2.15
+	network 10.0.2.0
+	netmask 255.255.255.0
+	broadcast 10.0.2.255
+	gateway 10.0.2.2
+
+Подключиться с host машины к guest:
+
+	$ ssh -p 2200 ccartmam@localhost
+	or
+	$ ssh -p 2200 ccartman@127.0.0.1
+
+Virtualbox автоматически переведед запрос на подключение к 127.0.0.1 на порт
+2200 на 10.0.2.15 на порт 4242
+
+Остановить service ssh:
+
+	# service ssh stop
+
+Запустить service ssh:
+
+	# service ssh start
+
+Перезапустить service ssh:
+
+	# service ssh restart
+
+man ssh
+user manual virtualbox part 6
+man sshd
+********************************************************************************
+
+8. Настройка политики паролей
+
+Открыть на редактирование файл login.defs
+
+	# vim /etc/login.defs
+
+Найти в файле нужные поля и поменять их значения:
+PASS_MAX_DAYS 30
+PASS_MINDAYS 2
+PASS_WARN_AGE 7
+
+Настройка надежности пароля:
+
+Использовать один из этих пакетов: libpam-pwquality, libpam-cracklib
+
+	# apt install libpam-cracklib
+	# dpkg -l | grep 'libpam-cracklib'
+
+Отредактировать файл конфигурации common-passwd:
+
+	# vim /etc/pam.d/common-passwd
+
+password		requisite			pam_cracklib.so retry=3 minlen=10 difok=7 \
+									dcredit=-1 ucredit=-1 maxrepeat=3 \
+									reject_username enforce_for_root
+
+man login.defs
+man pam.d
+man pam-cracklib
+man pam
+********************************************************************************
+
+9. Настройка cron:
+
+Создать дирректорию bin в домашней дирректории:
+
+	# mkdir ~/bin
+
+Написать скрипт:
+
+	# vim ~/bin/monitoring.sh
+	# chmod 755 ~/bin/monitoring.sh
+
+Создать новое задание для даймона cron:
+
+	# crontab -e
+
+Добавить в открывшийся файл строку:
+
+*/10 * * * * /root/bin/monitoring.sh | wall
+
+(команда такая из-за того, что в моем скрипте не используется wall)
+
+Прервать выполнение скрипта, можно остановив сервис  cron:
+
+	$ sudo service cron status
+	$ sudo service cron stop
+	$ sudo service cron status
+	$ sudo service cron start
+	$ sudo service cron status
+
+Изменить задание для cron от пользователя:
+
+	$ sudo -u root -e
+
+man cron
+man crontab
+********************************************************************************
+
+10. Изменить пароли соответственно политике паролей для root и ccartman
+
+	# vim /etc/shadow
+
+Изменить поля с номерами 4, 5, 6
+ccartman:*...*:18825:2:30:7:...
+root:*...*:18825:2:30:7:...
+
+Изменить пароли согласно политике:
+
+	# passwd root
+	...
+	# passwd ccartman
+	...
+
+Узнать информацию о пароле пользователя
+
+	# chage -l ccartman
+
+man passwd
+man chage
+man shadow(5)
+********************************************************************************
+
+11. Изменить име хоста
+
+	# vim /etc/hostname
+	# vim /etc/hosts
+	# reboot
+
+man hostname(5)
+man hosts(5)
+
+********************************************************************************
+
+12. Создать нового пользоватя bob
+
+	$ sudo adduser bob
+
+Проверка:
+
+	$ getent passwd bob
+	$ getent group bob
+
+Добавить boby в группы user42 и sudo;
+
+	$ sudo adduser bob user42
+	$ getent group user42
+	$ sudo adduser bob sudo
+	$ getent group sudo
+
+Подключиться по ssh:
+
+	$ ssh -p 2200 bob@localhost
+
+Удалить boby:
+
+	$sudo deluser bob --remove-home
+	$sudo delgroup bob
+
+
+********************************************************************************
+
+13. Установка и настройка webserver lighttpd:
+
+Обновить список пакетов и сами пакеты:
+
+	# apt update -y
+	# apt upgrade -y
+
+Установить lighttpd:
+
+	# apt install lighttpd -y
+
+Запустить службу lighttpd:
+
+	# systemctl start lighttpd
+
+Включить ее запуск после перезагрузки системы:
+
+	# systemctl enable lighttpd
+
+Проверить статус службы:
+
+	# systemctl status lighttpd
+
+
+********************************************************************************
+
+14. Установка Mariadb Server
+
+Установить:
+
+	# apt install mariadb-server mariadb-client -y
+
+Запустить службу mariadb:
+
+	# systemctl start mariadb.service
+
+Включить ее запуск после перезагрузки системы:
+
+	# systemctl enable mariadb.service
+
+Проверить статус службы:
+
+	# systemctl status mariadb.service
+
+После установки вам нужно будет защитить MariaDB.
+Вы можете обезопасить его, запустив следующий сценарий:
+
+	# mysql_secure_installation
+
+Change the root password? [Y/n] n
+Remove anonymous users? [Y/n] Y
+Disallow root login remotely? [Y/n] Y
+Remove test database and access to it? [Y/n] Y
+Reload privilege tables now? [Y/n] Y
+
+Перезапустить:
+	
+	# systemctl restart mariadb.service
+
+********************************************************************************
+
+15. Установить php и php-cgi (или php-fpm)
+
+Далее вам нужно будет установить PHP, PHP-FPM и FastCGI в вашу систему.
+По умолчанию Debian 10 поставляется с PHP версии 7.3:
+
+	# apt intall php php-cgi php-fpm php-mysql -y
+
+Подключить модуль php-fastcgi
+
+	# lighttpd-enable-mod fastcgi
+	# lighttpd-enable-mod fastcgi-php
+	# service lighttpd force-reload
+
+********************************************************************************
+
+16. Создать базу данных для wordpress
+
+Запустить сервер mariadb, создать базу данных, создать нового пользователя с
+новым паролем, предоставить пользователю полный доступ к базе, сохранить
+изменения.
+
+	# mariadb
+	> create database wpdb;
+	> create user 'wpdbuser'@'localhost' identified by 'wpdbpasswd'
+	> grant all on wpdb.* to 'wpdbuser'@'localhost' identified by 'wpdbpasswd'
+	with grant option;
+	> flush privileges;
+	> exit;
+
+
+********************************************************************************
+
+17. Скачать последнюю версию wordpress
+
+	# cd /tmp
+	# wget https://wordpress.org/latest.tar.gz
+	# rm -rf latest.tar.gz
+	# mv wordpress /var/www/html/wordpress
+	# chown -R www-data:www-data /var/www/html/wordpress/
+	# chmod -R 755 /var/www/html/wordpress/
+
+********************************************************************************
+
+18. Конфигурация wordpress
+
+	# mv /var/www/html/wordpress/wp-config-sample.php \
+	/var/www/html/wordpress/wp-config.php
+
+	# vim /var/www/html/wordpress/wp-config.php
+
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'wpdb');
+
+/** MySQL database username */
+define('DB_USER', 'wpdbuser');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'wpdbpasswd');
+
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+
+/** Database Charset to use in creating database tables. */
+define('DB_CHARSET', 'utf8');
+
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+
+Перезапустить службу lighttpd:
+
+	# systemctl restart lighttpd.service
+
+********************************************************************************
+
+19. Настройка сети.
+
+Два варианта.
+
+1. NAT  и port forwarding.
+
+Vb -> settings vm -> Network -> port forwarding -> New Rule:
+
+Name		Protocol	Host Ip		Host Port	Guest Ip	Guest Port
+LIGHTTPD	TCP			127.0.0.1	8000		10.0.2.15	80
+
+Новое правило ufw, открыть порт 80:
+
+	# ufw allow 80
+
+На хосте. Чтобы попасть на web server набрать в браузере:
+
+127.0.0.1:8000
+или
+localhost:8000
+
+сайт на wordpress:
+
+127.0.0.1:8000/wordpress
+или
+localhost:8000/wordpress
+
+Затем нужно настроить минимально сайт.
+
+2. Only-host-adapter.
+
+Vb -> tools -> network -> create
+Создатся устройство.
+Обычно vboxnet0 c ip 192.168.56.1 c маской 255.255.255.0
+
+На виртуальной машине:
+
+	# ip a
+
+Смотрим вывод. Нужно настроить статический адрес для enp0s8:
+
+	# vim /etc/network/interfaces
+
+Добавить следующие строчки:
+
+auto enp0s8
+iface enp0s8 inet static
+	address 192.168.56.11
+	netmask 255.255.255.0
+
+На хосте. Чтобы попасть на web server набрать в браузере:
+
+192.168.56.11
+
+сайт на wordpress:
+
+192.168.56.11/wordpress
+
+Подключиться по ssh к guest теперь можно так:
+
+	$ ssh -p 4242 ccartman@192.168.56.11
+
+
+********************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

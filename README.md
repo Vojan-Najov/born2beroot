@@ -6,3 +6,6 @@ This is a System Administration related exercise.
 - [Subject](./en.subject.pdf)
 
 ## Solution
+
+- [Monitoring script](./monitoring.sh)
+- [Notes ru](./notes_howto.txt)
